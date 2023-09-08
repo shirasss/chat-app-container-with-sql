@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App Lobby</title>
+
+</head>
+<body>
+    <h1>Hello, welcome to chat app!</h1>
+
+    <h2>This is the home page</h2>
+    
+    <h3>Create a room:</h3>
+    <form method="POST">
+      <label for="rname">room name:</label><br>
+      <input type="text" id="rname" name="new_room"><br>
+      <input type="submit" name="Create" value="Create">
+    </form>
+
+    <h3>Enter a chat room:</h3>
+    <form action="/" method="POST" id="chat-form">
+        <label for="room">Room name:</label><br>
+        <select name="room" id="room">
+            {% for room in room_names %}
+            <option value="{{ room }}">{{ room }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" name="enter" value="Enter">
+    </form>
+    <br>
+    <br>
+    <a href="/logout">logout</a>
+
+    
+    <!-- <button onclick="clear_rooms_data">Clear</button> -->
+    <script>
+        document.getElementById('chat-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+            
+            var selectedRoom = document.getElementById('room').value;
+            window.location.href = "/chat/" + selectedRoom; // Redirect to /chat/<room>
+        });
+    </script>
+</body>
+</html>
