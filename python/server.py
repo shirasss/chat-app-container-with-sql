@@ -7,13 +7,16 @@ import datetime
 from flask_session import Session
 import mysql.connector
 
-
+app = Flask(__name__)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SECRET_KEY'] = 'your_secret_key!!!!'
+app.config['SESSION_COOKIE_NAME'] = 'my_session_cookie'
+Session(app)
 
 @app.route('/logout', methods=['GET','POST'])
 # def logOut():
 #     session.pop('user_name', 'user_password')
 #     return redirect('login')
-
 def logOut():
     try:
         connection = mysql.connector.connect(
@@ -24,11 +27,6 @@ def logOut():
             database='mydb'
         )
         cursor = connection.cursor()
-        insert_query = "INSERT INTO users (username, password) VALUES (%s, %s)"
-        user_data = ('otheruser', '1234')
-        cursor.execute(insert_query, user_data)
-        connection.commit()  # Commit the transaction
-
         cursor.execute("SELECT * FROM users")
         users = cursor.fetchall()
 
@@ -36,6 +34,50 @@ def logOut():
 
     except mysql.connector.Error as err:
         return f"Error: {err}"
+
+
+def add_user_to_sql(user_name,password):
+    try:
+        connection = mysql.connector.connect(
+            user='root',
+            password='root',
+            host='mysql-db',  # Use the service name defined in Docker Compose
+            port=3306,         # Use the MySQL default port
+            database='mydb'
+        )
+        cursor = connection.cursor()
+        insert_query = "INSERT INTO users (username, password) VALUES (%s, %s)"
+        user_data = (user_name,password)
+        cursor.execute(insert_query, user_data)
+        connection.commit()  # Commit the transaction
+
+    except mysql.connector.Error as err:
+        return f"Error: {err}"
+
+
+
+# def logOut():
+#     try:
+#         connection = mysql.connector.connect(
+#             user='root',
+#             password='root',
+#             host='mysql-db',  # Use the service name defined in Docker Compose
+#             port=3306,         # Use the MySQL default port
+#             database='mydb'
+#         )
+#         cursor = connection.cursor()
+#         insert_query = "INSERT INTO users (username, password) VALUES (%s, %s)"
+#         user_data = ('otheruser', '1234')
+#         cursor.execute(insert_query, user_data)
+#         connection.commit()  # Commit the transaction
+
+#         cursor.execute("SELECT * FROM users")
+#         users = cursor.fetchall()
+
+#         return f"Connected to MySQL. Users: {users}"
+
+#     except mysql.connector.Error as err:
+#         return f"Error: {err}"
 
 
 def get_filenames_without_extensions(directory):
@@ -52,11 +94,7 @@ class user_status(Enum):
     NO_MATCH = 3
     ERROR = 4
 
-app = Flask(__name__)
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SECRET_KEY'] = 'your_secret_key!!!!'
-app.config['SESSION_COOKIE_NAME'] = 'my_session_cookie'
-Session(app)
+
 
 @app.route('/',methods=['GET','POST'] )
 def homePage():
@@ -70,7 +108,7 @@ def register():
         password = request.form['password']
         status,msg = check_if_user_exists(username,password)
         if status == user_status.NO_MATCH.value:
-           write_to_csv(username,encode_password(password))
+           add_user_to_sql(username,encode_password(password))
            return redirect("/login")
         elif status == user_status.NAME_MATCH.value:
            return msg
@@ -92,12 +130,6 @@ def check_if_user_exists(username, password):
                     return 2,"User name already exists"
     return 3,"new user"
 
-
-def write_to_csv(username,password):
-    filename = os.getenv('DATA_DIR')+"user.csv"
-    with open(filename,"a") as file:
-        writer = csv.writer(file)
-        writer.writerow([username, password])
 
 @app.route('/login', methods=['POST','GET'])
 def login():
