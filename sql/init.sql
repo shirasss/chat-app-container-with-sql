@@ -20,7 +20,7 @@ CREATE TABLE messages (
     roomID INT NOT NULL,
     username VARCHAR(255) NOT NULL,
     message VARCHAR(255) NOT NULL,
-    Date DATE
+    date DATE
 
 );
 INSERT INTO users (username, password) VALUES ('shira', '1234');
