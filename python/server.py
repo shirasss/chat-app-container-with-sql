@@ -18,19 +18,26 @@ Session(app)
 def get_db_connection():
     try:
         connection = mysql.connector.connect(
-            user='root',
-            password='root',
-            host='mysql-db',
-            port=3306,
-            database='chat_app_db'
-        )
+              user='root',
+              password='root',
+              host='mysql-db',
+              port=3306,
+              database='chat_app_db'
+            )
         return connection
     except mysql.connector.Error as err:
         return None
+    
+connection =None
 
+cursor = None
 
 @app.route('/',methods=['GET','POST'] )
 def homePage():
+    global connection
+    global cursor
+    connection= get_db_connection()
+    cursor=connection.cursor()
     return redirect("/register") 
 
 
@@ -40,8 +47,6 @@ def homePage():
 #     return redirect('login')
 def logOut():
     try:
-        connection = get_db_connection()
-        cursor = connection.cursor()
         cursor.execute("SELECT * FROM rooms")
         users = cursor.fetchall()   
         cursor.execute("SELECT * FROM messages")
@@ -55,8 +60,6 @@ def logOut():
 
 def add_user_to_sql(user_name,password):
     try:
-        connection = get_db_connection()
-        cursor = connection.cursor()
         insert_query = "INSERT INTO users (user_name, password) VALUES (%s, %s)"
         user_data = (user_name,encode_password(password))
         cursor.execute(insert_query, user_data)
@@ -67,8 +70,6 @@ def add_user_to_sql(user_name,password):
 
 
 def get_rooms_names():
-    connection = get_db_connection()
-    cursor = connection.cursor()
     cursor.execute("SELECT room_name FROM rooms")
     rooms = cursor.fetchall() 
     rooms_list=[]
@@ -101,8 +102,6 @@ def register():
     
 def check_if_user_exists(username, password):
     try:
-        connection = get_db_connection()
-        cursor = connection.cursor()
         query = "SELECT user_name, password FROM users WHERE user_name = %s"
         cursor.execute(query, (username,))
         user=cursor.fetchone()
@@ -146,8 +145,6 @@ def lobby():
 
 def create_a_room(room):
     try:
-        connection = get_db_connection()
-        cursor = connection.cursor()
         query = "SELECT count(*) FROM rooms WHERE room_name = %s"
         cursor.execute(query, (room,))
         count = cursor.fetchone()[0]
@@ -156,18 +153,6 @@ def create_a_room(room):
            insert_query = "INSERT INTO rooms (room_name) VALUES (%s)"
            user_data = (room,)
            cursor.execute(insert_query, user_data)
-           connection.commit()  # Commit the transaction
-           #extract the new room_id and user_id
-           query = "SELECT room_id FROM rooms WHERE room_name = %s"
-           cursor.execute(query, (room,))
-           room_id=cursor.fetchone()[0]
-           user_id = 0
-           #inserting the first message of the new room to messages table
-           insert_message_query = "INSERT INTO messages (room_id,user_id,message,date) VALUES (%s,%s,%s,%s)"
-           date = datetime.datetime.now().strftime("[%d/%m/%Y %H:%M:%S]")
-           welcome_message = "Welcome To {} room".format(room)
-           data_values = ( room_id ,user_id,welcome_message, date)
-           cursor.execute(insert_message_query, data_values)
            connection.commit()  # Commit the transaction
         else:
             print("The room name already exists")
@@ -212,22 +197,33 @@ def clear_room_user_data(room):
 
 @app.route('/api/chat/<room>', methods=['GET','POST'])
 def updateChat(room):
+    cursor.execute("SELECT room_id FROM rooms WHERE room_name = %s", (room,))
+    room_id=cursor.fetchone()[0]
     if not session.get("user_name"):
         return redirect("/")
-    # filename = os.getenv('ROOMS_DIR')+room+".txt"
     if request.method == 'POST':
         msg = request.form['msg']
         if "user_name" in session:
-            # Get the current date and time
-            # current_datetime = datetime.datetime.now()
-            # Format the date and time as a string
-            formatted_datetime = datetime.datetime.now().strftime("[%d/%m/%Y %H:%M:%S]")
-            
-            with open(filename,"a") as file:
-                file.write("\n"+formatted_datetime+"   "+session.get('user_name')+": "+msg)
-    with open(filename,"r") as file:
-        room_data = file.read()
-        return room_data
+           user_name=session.get('user_name')
+           #extract user_id
+           cursor.execute("SELECT user_id FROM users WHERE user_name = %s", (user_name,))
+           user_id=cursor.fetchone()[0]
+           date = datetime.datetime.now().strftime("[%d/%m/%Y %H:%M:%S]")
+           insert_message_query = "INSERT INTO messages (room_id,user_id,message,date) VALUES (%s,%s,%s,%s)"
+           data_values = ( room_id ,user_id,msg, date)
+           cursor.execute(insert_message_query, data_values)
+           connection.commit()  # Commit the transaction
+    cursor.execute("select * from messages where room_id = %s",(room_id,))
+    messages=cursor.fetchall()
+    print(messages)
+    return f"messages:{messages}"
+
+    # room_data = "\n".join(["\t".join(map(str, row)) for row in messages])
+    # return room_data
+
+# def get_messages_for_room(room_id):
+#     cursor.execute("select * from messages where room_id = %s",(room_id,))
+#     messages=cursor.fetchall()
 
 
 def encode_password(password):
