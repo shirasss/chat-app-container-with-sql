@@ -1,43 +1,24 @@
-
-CREATE DATABASE IF NOT EXISTS mydb;
-USE mydb;
-
+CREATE DATABASE IF NOT EXISTS chat_app_db;
+USE chat_app_db;
 
 
 CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_name VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE rooms (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    room_id INT AUTO_INCREMENT PRIMARY KEY,
     room_name VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE messages (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    roomID INT NOT NULL,
-    username VARCHAR(255) NOT NULL,
+    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    room_id INT NOT NULL,
+    user_id INT NOT NULL,
     message VARCHAR(255) NOT NULL,
-    date DATE
-
+    date VARCHAR(255) NOT NULL
+    -- FOREIGN KEY (user_id) REFERENCES users(user_id),
+    -- FOREIGN KEY (room_id) REFERENCES rooms(room_id)
 );
-INSERT INTO users (username, password) VALUES ('shira', '1234');
-
-
-
-
-
--- CREATE DATABASE IF NOT EXISTS mydb;
--- USE mydb;
-
--- CREATE TABLE users (
---     id INT AUTO_INCREMENT PRIMARY KEY,
---     username VARCHAR(255) NOT NULL,
---     password VARCHAR(255) NOT NULL
--- );
-
--- INSERT INTO users (username, password) VALUES
---     ('user1', 'password1'),
---     ('user2', 'password2');

@@ -22,7 +22,7 @@ def get_db_connection():
             password='root',
             host='mysql-db',
             port=3306,
-            database='mydb'
+            database='chat_app_db'
         )
         return connection
     except mysql.connector.Error as err:
@@ -42,10 +42,12 @@ def logOut():
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM users")
-        users = cursor.fetchall()
+        cursor.execute("SELECT * FROM rooms")
+        users = cursor.fetchall()   
+        cursor.execute("SELECT * FROM messages")
+        messages = cursor.fetchall()
 
-        return f"Connected to MySQL. Users: {users}"
+        return f"Connected to MySQL. rooms: {users} ,  messages:{messages}"
 
     except mysql.connector.Error as err:
         return f"Error: {err}"
@@ -55,7 +57,7 @@ def add_user_to_sql(user_name,password):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        insert_query = "INSERT INTO users (username, password) VALUES (%s, %s)"
+        insert_query = "INSERT INTO users (user_name, password) VALUES (%s, %s)"
         user_data = (user_name,encode_password(password))
         cursor.execute(insert_query, user_data)
         connection.commit()  # Commit the transaction
@@ -64,13 +66,15 @@ def add_user_to_sql(user_name,password):
         return f"Error: {err}"
 
 
-def get_filenames_without_extensions(directory):
-  files = os.listdir(directory)
-  filenames_without_extensions = []
-  for file in files:
-    filename, extension = os.path.splitext(file)
-    filenames_without_extensions.append(filename)
-  return filenames_without_extensions
+def get_rooms_names():
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT room_name FROM rooms")
+    rooms = cursor.fetchall() 
+    rooms_list=[]
+    for tup in rooms:
+       rooms_list.append(tup[0]) 
+    return rooms_list
 
 class user_status(Enum):
     PASS_AND_NAME_MATCH = 1
@@ -99,7 +103,7 @@ def check_if_user_exists(username, password):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        query = "SELECT username, password FROM users WHERE username = %s"
+        query = "SELECT user_name, password FROM users WHERE user_name = %s"
         cursor.execute(query, (username,))
         user=cursor.fetchone()
         if user is not None:
@@ -112,9 +116,7 @@ def check_if_user_exists(username, password):
              return 3,"new user"
     except mysql.connector.Error as err:
         return f"Error: {err}","error"
-    finally:
-       cursor.close()
-       connection.close()    
+  
 
 @app.route('/login', methods=['POST','GET'])
 def login():
@@ -140,15 +142,44 @@ def lobby():
         create_a_room(request.form['new_room'])
     else:
         enter_room(request.args.get('room'))
-    return render_template('lobby.html', room_names=get_filenames_without_extensions(os.getenv('ROOMS_DIR')))
+    return render_template('lobby.html', room_names=get_rooms_names())
 
 def create_a_room(room):
-    if room not in get_filenames_without_extensions(os.getenv('ROOMS_DIR')):
-            room_file = open(os.getenv('ROOMS_DIR')+room+".txt", 'w')
-            room_file.write('Wellcom To {} room!'.format(room))
-            room_file.close()
-    else:
-        print("The room name is already exist")
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        query = "SELECT count(*) FROM rooms WHERE room_name = %s"
+        cursor.execute(query, (room,))
+        count = cursor.fetchone()[0]
+        if count == 0:
+           #creating new room
+           insert_query = "INSERT INTO rooms (room_name) VALUES (%s)"
+           user_data = (room,)
+           cursor.execute(insert_query, user_data)
+           connection.commit()  # Commit the transaction
+           #extract the new room_id and user_id
+           query = "SELECT room_id FROM rooms WHERE room_name = %s"
+           cursor.execute(query, (room,))
+           room_id=cursor.fetchone()[0]
+           user_id = 0
+           #inserting the first message of the new room to messages table
+           insert_message_query = "INSERT INTO messages (room_id,user_id,message,date) VALUES (%s,%s,%s,%s)"
+           date = datetime.datetime.now().strftime("[%d/%m/%Y %H:%M:%S]")
+           welcome_message = "Welcome To {} room".format(room)
+           data_values = ( room_id ,user_id,welcome_message, date)
+           cursor.execute(insert_message_query, data_values)
+           connection.commit()  # Commit the transaction
+        else:
+            print("The room name already exists")
+    except mysql.connector.Error as err:
+        return f"Error: {err}","error"
+  
+    # if room not in get_filenames_without_extensions(os.getenv('ROOMS_DIR')):
+    #         room_file = open(os.getenv('ROOMS_DIR')+room+".txt", 'w')
+    #         room_file.write('Wellcom To {} room!'.format(room))
+    #         room_file.close()
+    # else:
+    #     print("The room name is already exist")
         
 
 def enter_room(room):
@@ -183,7 +214,7 @@ def clear_room_user_data(room):
 def updateChat(room):
     if not session.get("user_name"):
         return redirect("/")
-    filename = os.getenv('ROOMS_DIR')+room+".txt"
+    # filename = os.getenv('ROOMS_DIR')+room+".txt"
     if request.method == 'POST':
         msg = request.form['msg']
         if "user_name" in session:
@@ -191,6 +222,7 @@ def updateChat(room):
             # current_datetime = datetime.datetime.now()
             # Format the date and time as a string
             formatted_datetime = datetime.datetime.now().strftime("[%d/%m/%Y %H:%M:%S]")
+            
             with open(filename,"a") as file:
                 file.write("\n"+formatted_datetime+"   "+session.get('user_name')+": "+msg)
     with open(filename,"r") as file:
@@ -214,3 +246,5 @@ def decode_password(password):
 if __name__ == '__main__':
    app.run(host="0.0.0.0")
 
+
+ 
