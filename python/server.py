@@ -29,7 +29,6 @@ def get_db_connection():
         return None
     
 connection =None
-
 cursor = None
 
 @app.route('/',methods=['GET','POST'] )
@@ -197,10 +196,10 @@ def clear_room_user_data(room):
 
 @app.route('/api/chat/<room>', methods=['GET','POST'])
 def updateChat(room):
-    cursor.execute("SELECT room_id FROM rooms WHERE room_name = %s", (room,))
-    room_id=cursor.fetchone()[0]
     if not session.get("user_name"):
         return redirect("/")
+    cursor.execute("SELECT room_id FROM rooms WHERE room_name = %s", (room,))
+    room_id=cursor.fetchone()[0]
     if request.method == 'POST':
         msg = request.form['msg']
         if "user_name" in session:
@@ -215,7 +214,6 @@ def updateChat(room):
            connection.commit()  # Commit the transaction
     cursor.execute("select * from messages where room_id = %s",(room_id,))
     messages=cursor.fetchall()
-    print(messages)
     return f"messages:{messages}"
 
     # room_data = "\n".join(["\t".join(map(str, row)) for row in messages])
