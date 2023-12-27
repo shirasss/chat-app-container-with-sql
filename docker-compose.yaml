@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile  # Assuming your Dockerfile is named 'Dockerfile'
     image: app-image  # Set the image name to 'app-image'
     ports:
-      - "8080:5000"
+      - "8000:5000"
     depends_on:
       - mysql-db
   mysql-db:
