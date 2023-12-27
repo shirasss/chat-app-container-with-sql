@@ -20,3 +20,25 @@ services:
       - "3307:3306"
     volumes:
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+
+
+# version: '3'
+# services:
+#   app:
+#     container_name: app
+#     image: me-west1-docker.pkg.dev/eco-tract-407114/shira-repo/chat_sql:795760db28fc6fc12208fed9ffb8c42601f1fb4e  # Use the pre-built image
+#     ports:
+#       - "8000:5000"
+#     depends_on:
+#       - mysql-db
+#   mysql-db:
+#     image: mysql:8.0
+#     restart: always
+#     environment:
+#       MYSQL_DATABASE: 'chat_app_db'
+#       MYSQL_ROOT_PASSWORD: 'root'
+#     ports:
+#       - "3307:3306"
+#     volumes:
+#       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
