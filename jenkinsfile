@@ -7,7 +7,6 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building the Docker image'
-                dir('django_web_app') {
                     script {
                         // Extract the commit hash
                         def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
@@ -17,37 +16,16 @@ pipeline {
                         sh "docker-compose down"
                         sh "docker-compose up --build"
                     }
-                }
+                
             }
         }
         stage('Testing the app') {
             steps {
                 echo 'Running tests'
-                script {
-                    // Run the tests
-                }
-            }
-        }
-        stage('Push to Artifact Registry') {
-            steps {
-                // echo 'Pushing the Docker image to Artifact Registry'
-                // script {
-                //     // Use the commit hash as the version tag
-                //     def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
 
-                //     sh "docker tag $dockerImageName:$commitHash $artifactRegistryImage:$commitHash"
-                //     sh "docker push $artifactRegistryImage:$commitHash"
-                // }
             }
         }
 
-        stage('Deploy') {
-            steps {
-                // echo 'Deploying...'
-                // sh 'docker-compose down'  // Stop the existing containers
-                // sh 'docker-compose up -d'  // Start the updated containers
-            }
-        }
     }
 }
 
