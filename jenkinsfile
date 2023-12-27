@@ -12,8 +12,8 @@ pipeline {
                         def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                         // Build the Docker image with the commit hash as the version tag
                         sh "docker build -t $artifactRegistryImage:$commitHash ./python/"
-                        sh "gcloud auth configure-docker me-west1-docker.pkg.dev"
-                        sh "docker push $artifactRegistryImage:$commitHash"
+                        // sh "gcloud auth configure-docker me-west1-docker.pkg.dev"
+                        // sh "docker push $artifactRegistryImage:$commitHash"
                         sh "docker-compose down"
                         sh "docker-compose up --build"
                     }
