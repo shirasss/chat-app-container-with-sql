@@ -4,36 +4,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App Lobby</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
 
+        h1 {
+            color: #007bff;
+            margin-top: 40px;
+        }
+
+        h2 {
+            color: #333;
+            margin-top: 20px;
+        }
+
+        .create-room {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+            width: 300px;
+            margin: 0 auto;
+        }
+
+        .create-room h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .create-room form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .create-room label {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .create-room input[type="text"] {
+            padding: 10px;
+            border: none;
+            border-bottom: 1px solid #007bff;
+            margin-bottom: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .create-room input[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .enter-room {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+            width: 300px;
+            margin: 0 auto;
+        }
+
+        .enter-room h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .enter-room form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .enter-room label {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .enter-room select {
+            padding: 10px;
+            border: none;
+            border-bottom: 1px solid #007bff;
+            margin-bottom: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .enter-room input[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .logout {
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello, welcome to chat app!</h1>
+    <h1>Welcome to the Chat App!</h1>
 
     <h2>This is the home page</h2>
     
-    <h3>Create a room:</h3>
-    <form method="POST">
-      <label for="rname">room name:</label><br>
-      <input type="text" id="rname" name="new_room"><br>
-      <input type="submit" name="Create" value="Create">
-    </form>
+    <div class="create-room">
+        <h3>Create a Room:</h3>
+        <form method="POST">
+            <label for="rname">Room name:</label><br>
+            <input type="text" id="rname" name="new_room" required><br>
+            <input type="submit" name="Create" value="Create">
+        </form>
+    </div>
 
-    <h3>Enter a chat room:</h3>
-    <form action="/" method="POST" id="chat-form">
-        <label for="room">Room name:</label><br>
-        <select name="room" id="room">
-            {% for room in room_names %}
-            <option value="{{ room }}">{{ room }}</option>
-            {% endfor %}
-        </select>
-        <input type="submit" name="enter" value="Enter">
-    </form>
-    <br>
-    <br>
-    <a href="/logout">logout</a>
+    <div class="enter-room">
+        <h3>Enter a Chat Room:</h3>
+        <form action="/" method="POST" id="chat-form">
+            <label for="room">Room name:</label><br>
+            <select name="room" id="room">
+                {% for room in room_names %}
+                <option value="{{ room }}">{{ room }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" name="enter" value="Enter">
+        </form>
+    </div>
 
-    
-    <!-- <button onclick="clear_rooms_data">Clear</button> -->
+    <a href="/logout" class="logout">Logout</a>
+
     <script>
         document.getElementById('chat-form').addEventListener('submit', function(event) {
             event.preventDefault(); // Prevent the default form submission

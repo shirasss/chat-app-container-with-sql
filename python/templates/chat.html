@@ -1,61 +1,128 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
 
+        header {
+            background-color: #11efe4;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px #16d2dc;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        input[type="button"] {
+            padding: 10px 20px;
+            background-color: #3117f0;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        pre {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        a {
+            color: #007BFF;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
+
+<body>
+    <header>
+        <h1>Chat Room: {{ room }}</h1>
+    </header>
+    <div class="container">
+        <form id="inform" action="/api/chat{{ room }}" method="POST">
+            <label for="msg">Message:</label>
+            <input name="msg" type="text">
+            <input id="sendBtn" type="button" value="Send">
+        </form>
+        <pre id="chatbox">Loading...</pre>
+        <br>
+        <input id="clear" type="button" value="Clear">
+        <br>
+        <a href="/lobby">Back to lobby</a>
+        <a href="/logout">Logout</a>
+    </div>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script>
-      function room() {
-        var room = window.location.href.substring(window.location.href.lastIndexOf("/")+1);
-        if (room=="") room = "general";
-        return "/api/chat/"+room;
-      }
+        function room() {
+            var room = window.location.href.substring(window.location.href.lastIndexOf("/") + 1);
+            if (room == "") room = "general";
+            return "/api/chat/" + room;
+        }
 
-      function roomClear() {
-        var room = window.location.href.substring(window.location.href.lastIndexOf("/")+1);
-        if (room=="") room = "general";
-        $.post("/api/clear/"+room, $("#clearroom").serialize() );
-      }
-      
-      function updateChat() {
-        $.get(room(), function(data) {
-          $("#chatbox").text(data);
-          window.setTimeout(updateChat, 1500);
-        })
-      }
-  
-      function sendmessage() {
-        $.post(room(), $("#inform").serialize() );
-      }
-  
-      $(document).ready(function() {
-        $("#chatbox").text("Loading chat...");
-        $("#sendBtn").click(sendmessage)
-        $("#clear").click(roomClear)
-        window.setTimeout(updateChat, 1500);
-      });
-  
+        function roomClear() {
+            var room = window.location.href.substring(window.location.href.lastIndexOf("/") + 1);
+            if (room == "") room = "general";
+            $.post("/api/clear/" + room, $("#clearroom").serialize());
+        }
+
+        function updateChat() {
+            $.get(room(), function (data) {
+                $("#chatbox").text(data);
+                window.setTimeout(updateChat, 1500);
+            })
+        }
+
+        function sendmessage() {
+            $.post(room(), $("#inform").serialize());
+        }
+
+        $(document).ready(function () {
+            $("#chatbox").text("Loading chat...");
+            $("#sendBtn").click(sendmessage)
+            $("#clear").click(roomClear)
+            window.setTimeout(updateChat, 1500);
+        });
+
     </script>
-    <body>
-      <h1>Chat Room: {{ room }}</h1>
+</body>
 
-      <form id="inform" action="/api/chat"+room method="POST">
-        Message:<input name="msg" type=text>
-        <input id="sendBtn" type="button" value="send">
-      </form>
-      <pre id="chatbox">Loading...</pre>
-      
-      <br>
-
-    <input id="clear" type="button"  value="clear">
-      <br>
-      <a href="/lobby">Back to lobby</a>
-      <br>
-      <br>
-      <a href="/logout">logout</a>
-
-    </body>
-  </html>
+</html>
