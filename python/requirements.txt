@@ -1,3 +1,4 @@
 Flask==2.1.1
 Flask-Session==0.4.0
 mysql-connector-python
+Werkzeug==2.2.2
