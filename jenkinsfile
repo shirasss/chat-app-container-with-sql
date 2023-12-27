@@ -14,6 +14,7 @@ pipeline {
                         sh "docker build -t $artifactRegistryImage:$commitHash ./python/"
                         // sh "gcloud auth configure-docker me-west1-docker.pkg.dev"
                         // sh "docker push $artifactRegistryImage:$commitHash"
+                        echo 'Stopping and removing containers...'
                         sh "docker-compose stop"
                         sh "docker-compose down"
                         sh "docker-compose up --build"
