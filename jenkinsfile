@@ -17,7 +17,7 @@ pipeline {
                         echo 'Stopping and removing containers...'
                         sh "docker-compose stop"
                         sh "docker-compose down"
-                        sh "docker-compose up --build"
+                        // sh "docker-compose up --build"
                     }
                 
             }
