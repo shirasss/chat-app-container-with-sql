@@ -22,5 +22,7 @@ ENV ROOMS_DIR=${DATA_DIR}'rooms/'
 # Copy the content of the local src directory to the working directory
 COPY . .
 
+EXPOSE 5000
+
 # Command to run on container start
 CMD ["python", "./server.py"]

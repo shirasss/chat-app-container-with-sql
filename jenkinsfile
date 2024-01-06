@@ -9,19 +9,16 @@ pipeline {
                 echo 'Building the Docker image'
                     script {
                         // Extract the commit hash
-                        // def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                        def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                         // Build the Docker image with the commit hash as the version tag
                         // sh "docker build -t $artifactRegistryImage:$commitHash ./python/"
                         // sh "gcloud auth configure-docker me-west1-docker.pkg.dev"
                         // sh "docker push $artifactRegistryImage:$commitHash"
                         echo 'Stopping and removing containers...'
-                        sh "docker-compose stop"
-                        sh "docker-compose down"
-                        sleep time: 15, unit: 'SECONDS'  // Adjust the delay time as needed
-                        // sh "docker-compose up --build -d"
-                        sleep time: 15, unit: 'SECONDS'  // Adjust the delay time as needed
+                        // sleep time: 15, unit: 'SECONDS'  // Adjust the delay time as needed
+                        sh "docker-compose up --build -d"
+                        // sleep time: 15, unit: 'SECONDS'  // Adjust the delay time as needed
                     }
-                
             }
         }
         stage('Testing the app') {
