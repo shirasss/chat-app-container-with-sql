@@ -8,20 +8,27 @@ pipeline {
                 script {
                     checkout([$class: 'GitSCM',
                         branches: [[name: 'main']],  // the branch
-                        userRemoteConfigs: [[url: 'git@github.com:shirasss/chat-app-container-with-sql.git', credentialsId: 'github-key']]
+                        userRemoteConfigs: [[url: 'git@github.com:shirasss/chat-app-container-with-files.git']]
                     ])
                 }
 
             }
     }  
+    stage('Build') {
+            steps {
+                // sh "docker-compose up -d --build"
+
+            }
+    }  
     stage('Integrate Remote k8s with Jenkins ') {
       steps {
-          
          withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: 'sample', contextName: '', credentialsId: 'SECRET_TOKEN', namespace: 'production', serverUrl: 'https://34.165.68.20']]) {
           sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl"'  
           sh 'chmod u+x ./kubectl'  
           sh './kubectl get nodes'
           sh "./kubectl get pods --namespace=production"
+          sh "./kubectl set image deployment/deployment2 devconnect=<new-image>
+"
 }
       }
     }
