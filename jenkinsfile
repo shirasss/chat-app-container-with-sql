@@ -1,110 +1,139 @@
 pipeline {
-    agent any
-    environment {
-        artifactRegistryImage = "me-west1-docker.pkg.dev/eco-tract-407114/shira-repo/chat_sql"
-    }
-    stages {
-        stage('Build') {
+  agent any 
+  
+  stages {
+    stage('Checkout') {
             steps {
-                echo 'Building the Docker image'
-                    script {
-                        
-                        // Extract the commit hash
-                        // def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-                        // Build the Docker image with the commit hash as the version tag
-                        // sh "docker build -t $artifactRegistryImage:$commitHash ./python/"
-                        // sh "gcloud auth configure-docker me-west1-docker.pkg.dev"
-                        // sh "docker push $artifactRegistryImage:$commitHash"
-                        deleteDir()
-                        echo 'Stopping and removing containers...'
-                        // sleep time: 15, unit: 'SECONDS'  // Adjust the delay time as needed
-                        sh "docker-compose up --build -d"
-                        // sleep time: 15, unit: 'SECONDS'  // Adjust the delay time as needed
-                    }
-            }
-        }
-        stage('Testing the app') {
-            steps {
-                echo 'Running tests'
+                echo 'Checking out code from Git'
+                script {
+                    checkout([$class: 'GitSCM',
+                        branches: [[name: 'main']],  // the branch
+                        userRemoteConfigs: [[url: 'git@github.com:shirasss/chat-app-container-with-sql.git', credentialsId: 'github-key']]
+                    ])
+                }
 
             }
-        }
-
-    }
+    }  
+    stage('Integrate Remote k8s with Jenkins ') {
+      steps {
+          
+         withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: 'sample', contextName: '', credentialsId: 'SECRET_TOKEN', namespace: 'production', serverUrl: 'https://34.165.68.20']]) {
+          sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl"'  
+          sh 'chmod u+x ./kubectl'  
+          sh './kubectl get nodes'
+          sh "./kubectl get pods --namespace=production"
 }
-
-
-
-
-// checkout([$class: 'GitSCM',
-//         branches: [[name: 'main']],  // Replace with your branch
-//         userRemoteConfigs: [[url: 'git@github.com:rivkyschon/DevConnect-.git',credentialsId: 'jenkins']]]
-//         )
-
+      }
+    }
+  }
+}
 
 // pipeline {
 //     agent any
 //     environment {
-//         dockerImageName = 'django_from_jenkins'
-//         artifactRegistryImage = "me-west1-docker.pkg.dev/devconnect-project/shira-shani-artifacts/devconnect"
-//         containerName = "django_container"
+//         artifactRegistryImage = "me-west1-docker.pkg.dev/eco-tract-407114/shira-repo/chat_sql"
 //     }
 //     stages {
 //         stage('Build') {
 //             steps {
-//                 echo 'Building the Docker image'
-//                 dir('django_web_app') {
 //                     script {
+                        
 //                         // Extract the commit hash
-//                         def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-//                         sh "docker build -t $dockerImageName:$commitHash ."
+//                         // def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+//                         // Build the Docker image with the commit hash as the version tag
+//                         // sh "docker build -t $artifactRegistryImage:$commitHash ./python/"
+//                         // sh "gcloud auth configure-docker me-west1-docker.pkg.dev"
+//                         // sh "docker push $artifactRegistryImage:$commitHash"
+//                         deleteDir()
+//                         echo 'Stopping and removing containers...'
+//                         // sleep time: 15, unit: 'SECONDS'  // Adjust the delay time as needed
+//                         sh "docker-compose up --build -d"
+//                         // sleep time: 15, unit: 'SECONDS'  // Adjust the delay time as needed
 //                     }
-//                 }
 //             }
 //         }
 //         stage('Testing the app') {
 //             steps {
-//                 echo 'Running Django tests'
-//                 script {
-//                     def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-//                     sh "docker stop $containerName || true"
-//                     sh "docker rm $containerName || true"
-//                     sh "docker run --name $containerName -d -p 5000:8000 $dockerImageName:$commitHash"
-//                     // Run the Django tests
-//                     dir('django_web_app') {
-//                         sh "docker exec $containerName python manage.py test"
-//                     }
-//                 }
+//                 echo 'Running tests'
+
 //             }
 //         }
-//         stage('Push to Artifact Registry') {
-//             steps {
-//                 echo 'Pushing the Docker image to Artifact Registry'
-//                 script {
-//                     // Use the commit hash as the version tag
-//                     def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
 
-
-//                     sh "docker tag $dockerImageName:$commitHash $artifactRegistryImage:$commitHash"
-//                     sh "docker push $artifactRegistryImage:$commitHash"
-//                 }
-//             }
-//         }
-//         stage('Deploy') {
-//             steps {
-//                 echo 'Deploying...'
-//                 // Add deployment steps here
-//             }
-//         }
-//     }
-
-
-//     post {
-//         success {
-//             echo 'Pipeline succeeded!'
-//         }
-//         failure {
-//             echo 'Pipeline failed!'
-//         }
 //     }
 // }
+
+
+
+
+// // checkout([$class: 'GitSCM',
+// //         branches: [[name: 'main']],  // Replace with your branch
+// //         userRemoteConfigs: [[url: 'git@github.com:rivkyschon/DevConnect-.git',credentialsId: 'jenkins']]]
+// //         )
+
+
+// // pipeline {
+// //     agent any
+// //     environment {
+// //         dockerImageName = 'django_from_jenkins'
+// //         artifactRegistryImage = "me-west1-docker.pkg.dev/devconnect-project/shira-shani-artifacts/devconnect"
+// //         containerName = "django_container"
+// //     }
+// //     stages {
+// //         stage('Build') {
+// //             steps {
+// //                 echo 'Building the Docker image'
+// //                 dir('django_web_app') {
+// //                     script {
+// //                         // Extract the commit hash
+// //                         def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+// //                         sh "docker build -t $dockerImageName:$commitHash ."
+// //                     }
+// //                 }
+// //             }
+// //         }
+// //         stage('Testing the app') {
+// //             steps {
+// //                 echo 'Running Django tests'
+// //                 script {
+// //                     def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+// //                     sh "docker stop $containerName || true"
+// //                     sh "docker rm $containerName || true"
+// //                     sh "docker run --name $containerName -d -p 5000:8000 $dockerImageName:$commitHash"
+// //                     // Run the Django tests
+// //                     dir('django_web_app') {
+// //                         sh "docker exec $containerName python manage.py test"
+// //                     }
+// //                 }
+// //             }
+// //         }
+// //         stage('Push to Artifact Registry') {
+// //             steps {
+// //                 echo 'Pushing the Docker image to Artifact Registry'
+// //                 script {
+// //                     // Use the commit hash as the version tag
+// //                     def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+
+
+// //                     sh "docker tag $dockerImageName:$commitHash $artifactRegistryImage:$commitHash"
+// //                     sh "docker push $artifactRegistryImage:$commitHash"
+// //                 }
+// //             }
+// //         }
+// //         stage('Deploy') {
+// //             steps {
+// //                 echo 'Deploying...'
+// //                 // Add deployment steps here
+// //             }
+// //         }
+// //     }
+
+
+// //     post {
+// //         success {
+// //             echo 'Pipeline succeeded!'
+// //         }
+// //         failure {
+// //             echo 'Pipeline failed!'
+// //         }
+// //     }
+// // }
